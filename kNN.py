@@ -16,7 +16,7 @@ class KDtree(object):
         self.dim = len(point[0])
         self.k = k
         self.Kbest = []
-        self.alpha = 0.7
+        self.alpha = 0.4
         self.root = self.fit(point)
 
     def fit(self, point, depth=0):
@@ -143,8 +143,8 @@ def gen_data(x1, x2):
 
 
 def load_data():
-    x1_train = np.linspace(0, 50, 200)
-    x2_train = np.linspace(-10, 10, 200)
+    x1_train = np.linspace(0, 50, 1000)
+    x2_train = np.linspace(-10, 10, 1000)
     data_train = [[x1, x2, gen_data(x1, x2) + np.random.random(1)[0] - 0.5] for x1, x2 in zip(x1_train, x2_train)]
     x1_test = np.linspace(0, 50, 100) + np.random.random(100) * 0.5
     x2_test = np.linspace(-10, 10, 100) + 0.02 * np.random.random(100)
@@ -154,20 +154,20 @@ def load_data():
 def main():
     train, test = load_data()
     x_train, y_train = train[:, :], train[:, 2]
-    # x_test, y_test = test[:, :2], test[:, 2]  # 同上，但这里的y没有噪声
-    t = KDtree([x_train[0]], k=7)
-    for point in x_train:
-        print(point)
+    x_test, y_test = test[:, :], test[:, 2]  # 同上，但这里的y没有噪声
+    t = KDtree([x_train[0]], k=13)
+    for point in x_train[1:]:
         t.root=t.add(t.root, point, 0)
-        t.root=t.delete(t.root, point, 0)
+        # t.root=t.delete(t.root, point, 0)
+    t.root=t.rebuild(t.root, 0)
 
-    result = [t.find_Knearest(i)[-1][-1] for i in x_train]
+    result = [t.find_Knearest(i)[-1][-1] for i in x_test]
     result = [i[-1] for i in result]
     result = [np.average(i) for i in result]
     #
     print(len(result))
     plt.plot(result)
-    plt.plot(y_train)
+    plt.plot(y_test)
     plt.show()
 
 
