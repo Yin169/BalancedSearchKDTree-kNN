@@ -57,23 +57,25 @@ class KDtree(object):
     def calc(self, root):
         if root is None:
             return 0
-        return root.left + root.right + 1
+        return self.calc(root.left) + self.calc(root.right) + 1
 
     def calcD(self, root):
         if root is None:
             return 0
-        return root.left + root.right + root.dflag
+        return self.calcD(root.left) + self.calcD(root.right) + root.dflag
 
     def flatten(self, root, flat_a=[]):
         if root is None:
             return flat_a
         flat_a = self.flatten(root.left)
         if root.dflag == 0:
-            flat_a.appen(root.point)
+            flat_a.append(root.point)
         flat_a = self.flatten(root.right)
         return flat_a
 
     def FLAG(self, root):
+        if root is None:
+            return 0
         calc = self.calc(root)
         return root.dflag and (self.alpha * calc <= max(self.calc(root.left), self.calc(root.right))
                                or self.calcD(root) <= self.alpha * calc)
@@ -84,25 +86,25 @@ class KDtree(object):
             root = Node(axis=axis, val=point, left=None, right=None)
         else:
             if point[root.axis] < root.point[root.axis]:
-                root = self.add(root.left, point, depth=depth+1)
+                root.left = self.add(root.left, point, depth=depth+1)
             elif root.point[axis] < point[root.axis]:
-                root = self.add(root.right, point, depth=depth+1)
-        if self.FLAG(root):
-            root = self.rebuid(root, depth)
+                root.right = self.add(root.right, point, depth=depth+1)
+            if self.FLAG(root):
+                root = self.rebuild(root, depth)
         return root
 
     def delete(self, root, point, depth=0):
         if root is None:
             return None
         else:
-            if root.point == point:
+            if all(root.point == point):
                 root.dflag = 1
             elif point[root.axis] < root.point[root.axis]:
-                root = self.delete(root.left, point, depth=depth+1)
+                root.left = self.delete(root.left, point, depth=depth+1)
             elif root.point[root.axis] < point[root.axis]:
-                root = self.delete(root.right, point, depth=depth+1)
-        if self.FLAG(root):
-            root = self.rebuid(root, depth)
+                root.right = self.delete(root.right, point, depth=depth+1)
+            if self.FLAG(root):
+                root = self.rebuild(root, depth)
         return root
 
     def rebuild(self, root, depth):
@@ -141,8 +143,8 @@ def gen_data(x1, x2):
 
 
 def load_data():
-    x1_train = np.linspace(0, 50, 500)
-    x2_train = np.linspace(-10, 10, 500)
+    x1_train = np.linspace(0, 50, 200)
+    x2_train = np.linspace(-10, 10, 200)
     data_train = [[x1, x2, gen_data(x1, x2) + np.random.random(1)[0] - 0.5] for x1, x2 in zip(x1_train, x2_train)]
     x1_test = np.linspace(0, 50, 100) + np.random.random(100) * 0.5
     x2_test = np.linspace(-10, 10, 100) + 0.02 * np.random.random(100)
@@ -153,12 +155,17 @@ def main():
     train, test = load_data()
     x_train, y_train = train[:, :], train[:, 2]
     # x_test, y_test = test[:, :2], test[:, 2]  # 同上，但这里的y没有噪声
-    t = KDtree(x_train, k=10)
+    t = KDtree([x_train[0]], k=7)
+    for point in x_train:
+        print(point)
+        t.root=t.add(t.root, point, 0)
+        t.root=t.delete(t.root, point, 0)
+
     result = [t.find_Knearest(i)[-1][-1] for i in x_train]
     result = [i[-1] for i in result]
     result = [np.average(i) for i in result]
     #
-    print(result)
+    print(len(result))
     plt.plot(result)
     plt.plot(y_train)
     plt.show()
