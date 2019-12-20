@@ -77,8 +77,8 @@ class KDtree(object):
         if root is None:
             return 0
         calc = self.calc(root)
-        return root.dflag and (self.alpha * calc <= max(self.calc(root.left), self.calc(root.right))
-                               or self.calcD(root) <= self.alpha * calc)
+        return not root.dflag and (self.alpha * calc <= max(self.calc(root.left), self.calc(root.right))
+                               or self.alpha * calc <= self.calcD(root))
 
     def add(self, root, point, depth=0):
         axis = depth % self.dim
@@ -143,8 +143,8 @@ def gen_data(x1, x2):
 
 
 def load_data():
-    x1_train = np.linspace(0, 50, 1000)
-    x2_train = np.linspace(-10, 10, 1000)
+    x1_train = np.linspace(0, 50, 100)
+    x2_train = np.linspace(-10, 10, 100)
     data_train = [[x1, x2, gen_data(x1, x2) + np.random.random(1)[0] - 0.5] for x1, x2 in zip(x1_train, x2_train)]
     x1_test = np.linspace(0, 50, 100) + np.random.random(100) * 0.5
     x2_test = np.linspace(-10, 10, 100) + 0.02 * np.random.random(100)
@@ -159,7 +159,7 @@ def main():
     for point in x_train[1:]:
         t.root=t.add(t.root, point, 0)
         # t.root=t.delete(t.root, point, 0)
-    t.root=t.rebuild(t.root, 0)
+    # t.root=t.rebuild(t.root, 0)
 
     result = [t.find_Knearest(i)[-1][-1] for i in x_test]
     result = [i[-1] for i in result]
