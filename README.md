@@ -1,2 +1,2 @@
-# BalancedSearchTree-kNN
+# BalancedSearchKDTree-kNN
 Scapegoat KNN
