@@ -1,2 +1,2 @@
-# Insertable-kNN
+# BalancedSearchTree-kNN
 Scapegoat KNN
